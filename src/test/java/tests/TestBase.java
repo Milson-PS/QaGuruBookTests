@@ -1,51 +1,30 @@
 package tests;
 
-import com.codeborne.selenide.Configuration;
+
 import com.codeborne.selenide.logevents.SelenideLogger;
-import data.TestData;
+import config.ConfigReader;
+import config.ProjectConfig;
+import config.auth.BookStoreAuthConfigReader;
+import config.web.WebConfig;
 import helpers.Attach;
 import io.qameta.allure.selenide.AllureSelenide;
-import io.restassured.RestAssured;
-import io.restassured.parsing.Parser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import pages.ProfileBooksPage;
-
-
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-import java.util.Map;
 
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 
 public class TestBase {
-    public DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM,yyyy", Locale.ENGLISH);
-    TestData testData = new TestData();
-    ProfileBooksPage profileBooksPage = new ProfileBooksPage();
+    public static final config.auth.AuthConfig authConfig = BookStoreAuthConfigReader.Instance.read();
+    private static final WebConfig webConfig = ConfigReader.Instance.read();
 
     @BeforeAll
     static void preconditionsForAllTests() {
-        Configuration.browserSize = System.getProperty("browserSize", "1920x1080");
-        Configuration.baseUrl = "https://demoqa.com";
-        RestAssured.baseURI = "https://demoqa.com";
-        RestAssured.defaultParser = Parser.JSON;
-        Configuration.pageLoadStrategy = "eager";
-        Configuration.holdBrowserOpen = false;
-        Configuration.remote = System.getProperty("remoteUrl");
-        Configuration.browser = System.getProperty("browserName", "chrome");
-        Configuration.browserVersion = System.getProperty("browserVersion");
-        //"https://user1:1234@selenoid.autotests.cloud/wd/hub";
-
-        DesiredCapabilities capabilities = new DesiredCapabilities();
-        capabilities.setCapability("selenoid:options", Map.<String, Object>of(
-                "enableVNC", true,
-                "enableVideo", true
-        ));
-        Configuration.browserCapabilities = capabilities;
-
+        ProjectConfig projectConfiguration = new ProjectConfig(webConfig, authConfig);
+        projectConfiguration.webConfig();
+        projectConfiguration.apiConfig();
     }
+
 
     @BeforeEach
     void preconditionsForEachTest() {
